@@ -150,22 +150,88 @@
   }
 }
 
-    // Aggiungi event listener al bottone di verifica
-    document.getElementById('checkButton').addEventListener('click', checkAvailability);
+// Aggiungi event listener al bottone di verifica
+document.getElementById('checkButton').addEventListener('click', checkAvailability);
     
-    // Aggiungi event listener al bottone continua
-    document.getElementById('continueButton').addEventListener('click', function() {
-      // Qui puoi implementare il redirect all'app Adalo o altre azioni
-      const params = getUrlParams();
-      // Esempio di messaggio per post-message ad Adalo
-      window.parent.postMessage({
-        type: 'booking_confirmed',
-        data: params
-      }, '*');
-    });
+// Aggiungi event listener al bottone continua
+document.getElementById('continueButton').addEventListener('click', function() {
+  const params = getUrlParams();
+  
+  // Reindirizza ad una schermata specifica di Adalo con i parametri
+  window.location.href = 'adalo://app/screens/PrenotazioneConfermata?' + 
+                        'data=' + encodeURIComponent(params.data) + 
+                        '&campo=' + encodeURIComponent(params.campo) + 
+                        '&orario=' + encodeURIComponent(params.orario);
+});
+
+// Crea un pulsante per provare un altro orario
+const tryAgainButton = document.createElement('button');
+tryAgainButton.id = 'tryAgainButton';
+tryAgainButton.textContent = 'Prova un altro orario';
+tryAgainButton.className = 'hidden';
+tryAgainButton.style.backgroundColor = '#f0ad4e';
+tryAgainButton.style.marginTop = '10px';
+document.querySelector('.container').appendChild(tryAgainButton);
+
+// Aggiungi listener al bottone per tornare indietro
+document.getElementById('tryAgainButton').addEventListener('click', function() {
+  window.location.href = 'adalo://app/back';
+});
+
+// Modifica la funzione checkAvailability per mostrare il pulsante "Prova di nuovo" quando necessario
+const originalCheckAvailability = checkAvailability;
+checkAvailability = async function() {
+  const params = getUrlParams();
+  const statusContainer = document.getElementById('statusContainer');
+  const statusTitle = document.getElementById('statusTitle');
+  const statusMessage = document.getElementById('statusMessage');
+  const continueButton = document.getElementById('continueButton');
+  const tryAgainButton = document.getElementById('tryAgainButton');
+  
+  // Nascondi entrambi i pulsanti all'inizio
+  continueButton.classList.add('hidden');
+  tryAgainButton.classList.add('hidden');
+  
+  // Mostra lo stato di caricamento
+  statusContainer.className = 'status-container loading';
+  statusContainer.style.display = 'block';
+  statusTitle.textContent = 'Verifica in corso...';
+  statusMessage.textContent = 'Stiamo controllando la disponibilità...';
+  
+  // Costruisci l'URL dell'API Google Apps Script
+  const scriptUrl = 'https://script.google.com/macros/s/AkfycbzO9_3iBquDs1_cByabiJvnmIttAfHGYH7mDXt6tC0CAbTInjnuGI3oTD5M7Q4IhNyj2Q/exec';
+  const apiUrl = `${scriptUrl}?data=${encodeURIComponent(params.data)}&campo=${encodeURIComponent(params.campo)}&orario=${encodeURIComponent(params.orario)}`;
+  
+  try {
+    // Esegui la chiamata all'API
+    const response = await fetch(apiUrl);
+    const result = await response.json();
     
-    // Avvia automaticamente la verifica al caricamento della pagina
-    window.onload = checkAvailability;
+    if (result.success) {
+      // Slot disponibile
+      statusContainer.className = 'status-container available';
+      statusTitle.textContent = '✅ Slot Disponibile!';
+      statusMessage.textContent = `${params.data} - ${params.campo} - ${params.orario} è disponibile per la prenotazione.`;
+      continueButton.classList.remove('hidden');
+    } else {
+      // Slot non disponibile
+      statusContainer.className = 'status-container not-available';
+      statusTitle.textContent = '❌ Slot Non Disponibile';
+      statusMessage.textContent = result.error || 'Questo slot è già prenotato. Prova un altro orario o campo.';
+      tryAgainButton.classList.remove('hidden');
+    }
+  } catch (error) {
+    // Errore durante la chiamata
+    statusContainer.className = 'status-container not-available';
+    statusTitle.textContent = '⚠️ Errore';
+    statusMessage.textContent = 'Si è verificato un errore durante la verifica. Riprova tra qualche istante.';
+    tryAgainButton.classList.remove('hidden');
+    console.error('Error:', error);
+  }
+};
+
+// Avvia automaticamente la verifica al caricamento della pagina
+window.onload = checkAvailability;
   </script>
 </body>
 </html>

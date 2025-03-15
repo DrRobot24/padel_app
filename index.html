@@ -84,49 +84,71 @@
 
     // Funzione per verificare la disponibilità
     async function checkAvailability() {
-      const params = getUrlParams();
-      const statusContainer = document.getElementById('statusContainer');
-      const statusTitle = document.getElementById('statusTitle');
-      const statusMessage = document.getElementById('statusMessage');
-      const continueButton = document.getElementById('continueButton');
+  const params = getUrlParams();
+  const statusContainer = document.getElementById('statusContainer');
+  const statusTitle = document.getElementById('statusTitle');
+  const statusMessage = document.getElementById('statusMessage');
+  const continueButton = document.getElementById('continueButton');
+  
+  // Mostra lo stato di caricamento
+  statusContainer.className = 'status-container loading';
+  statusContainer.style.display = 'block';
+  statusTitle.textContent = 'Verifica in corso...';
+  statusMessage.textContent = 'Stiamo controllando la disponibilità...';
+  
+  // Costruisci l'URL dell'API Google Apps Script
+  const scriptUrl = 'https://script.google.com/macros/s/AkfycbzO9_3iBquDs1_cByabiJvnmIttAfHGYH7mDXt6tC0CAbTInjnuGI3oTD5M7Q4IhNyj2Q/exec';
+  const apiUrl = `${scriptUrl}?data=${encodeURIComponent(params.data)}&campo=${encodeURIComponent(params.campo)}&orario=${encodeURIComponent(params.orario)}`;
+  
+  try {
+    // Esegui la chiamata all'API
+    const response = await fetch(apiUrl);
+    const result = await response.json();
+    
+    if (result.success) {
+      // Slot disponibile
+      statusContainer.className = 'status-container available';
+      statusTitle.textContent = '✅ Slot Disponibile!';
+      statusMessage.textContent = `${params.data} - ${params.campo} - ${params.orario} è disponibile per la prenotazione.`;
+      continueButton.classList.remove('hidden');
       
-      // Mostra lo stato di caricamento
-      statusContainer.className = 'status-container loading';
-      statusContainer.style.display = 'block';
-      statusTitle.textContent = 'Verifica in corso...';
-      statusMessage.textContent = 'Stiamo controllando la disponibilità...';
+      // AGGIUNGI QUESTO: Invia messaggio ad Adalo sullo stato disponibile
+      window.parent.postMessage({
+        type: 'slot_status',
+        available: true,
+        data: params
+      }, '*');
+    } else {
+      // Slot non disponibile
+      statusContainer.className = 'status-container not-available';
+      statusTitle.textContent = '❌ Slot Non Disponibile';
+      statusMessage.textContent = result.error || 'Questo slot è già prenotato. Prova un altro orario o campo.';
+      continueButton.classList.add('hidden');
       
-      // Costruisci l'URL dell'API Google Apps Script
-      const scriptUrl = 'https://script.google.com/macros/s/AkfycbzO9_3iBquDs1_cByabiJvnmIttAfHGYH7mDXt6tC0CAbTInjnuGI3oTD5M7Q4IhNyj2Q/exec';
-      const apiUrl = `${scriptUrl}?data=${encodeURIComponent(params.data)}&campo=${encodeURIComponent(params.campo)}&orario=${encodeURIComponent(params.orario)}`;
-      
-      try {
-        // Esegui la chiamata all'API
-        const response = await fetch(apiUrl);
-        const result = await response.json();
-        
-        if (result.success) {
-          // Slot disponibile
-          statusContainer.className = 'status-container available';
-          statusTitle.textContent = '✅ Slot Disponibile!';
-          statusMessage.textContent = `${params.data} - ${params.campo} - ${params.orario} è disponibile per la prenotazione.`;
-          continueButton.classList.remove('hidden');
-        } else {
-          // Slot non disponibile
-          statusContainer.className = 'status-container not-available';
-          statusTitle.textContent = '❌ Slot Non Disponibile';
-          statusMessage.textContent = result.error || 'Questo slot è già prenotato. Prova un altro orario o campo.';
-          continueButton.classList.add('hidden');
-        }
-      } catch (error) {
-        // Errore durante la chiamata
-        statusContainer.className = 'status-container not-available';
-        statusTitle.textContent = '⚠️ Errore';
-        statusMessage.textContent = 'Si è verificato un errore durante la verifica. Riprova tra qualche istante.';
-        continueButton.classList.add('hidden');
-        console.error('Error:', error);
-      }
+      // AGGIUNGI QUESTO: Invia messaggio ad Adalo sullo stato non disponibile
+      window.parent.postMessage({
+        type: 'slot_status',
+        available: false,
+        data: params
+      }, '*');
     }
+  } catch (error) {
+    // Errore durante la chiamata
+    statusContainer.className = 'status-container not-available';
+    statusTitle.textContent = '⚠️ Errore';
+    statusMessage.textContent = 'Si è verificato un errore durante la verifica. Riprova tra qualche istante.';
+    continueButton.classList.add('hidden');
+    console.error('Error:', error);
+    
+    // AGGIUNGI QUESTO: Invia messaggio ad Adalo per l'errore
+    window.parent.postMessage({
+      type: 'slot_status',
+      available: false,
+      error: true,
+      data: params
+    }, '*');
+  }
+}
 
     // Aggiungi event listener al bottone di verifica
     document.getElementById('checkButton').addEventListener('click', checkAvailability);

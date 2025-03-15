@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verifica Disponibilità Padel</title>
+  <title>Verifica Disponibilità Prenotazione Padel</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -111,7 +111,7 @@ async function checkAvailability() {
   statusMessage.textContent = 'Stiamo controllando la disponibilità...';
   
   // Costruisci l'URL dell'API Google Apps Script
-  const scriptUrl = 'https://script.google.com/macros/s/AkfycbzO9_3iBquDs1_cByabiJvnmIttAfHGYH7mDXt6tC0CAbTInjnuGI3oTD5M7Q4IhNyj2Q/exec';
+  const scriptUrl = 'https://script.google.com/macros/s/AKfycbzO9_3i5quDs1_cByabiJvnmIttAfHGYH7mDXt6tC0CAbTlnjnuGi3oTD5M7Q4lhNyj2Q/exec';
   const apiUrl = `${scriptUrl}?data=${encodeURIComponent(params.data)}&campo=${encodeURIComponent(params.campo)}&orario=${encodeURIComponent(params.orario)}`;
   
   try {
@@ -165,6 +165,11 @@ async function checkAvailability() {
 }
 
 // Aggiungi event listener al bottone di verifica
+console.log("Parametri inviati:", params);
+statusMessage.textContent = `Debug: data=${params.data || 'mancante'}, campo=${params.campo || 'mancante'}, orario=${params.orario || 'mancante'}`;
+
+// After the fetch call
+console.log("Risposta API:", result);
 document.getElementById('checkButton').addEventListener('click', checkAvailability);
 
 // Aggiungi event listener al bottone continua

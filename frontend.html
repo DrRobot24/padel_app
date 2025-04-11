@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prenotazione Campo Padel</title>
+  <base target="_top">
+  <!-- Integrazione Flatpickr per un datepicker migliore -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/it.min.js"></script>
+  <style>
+    /* Stili generali */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    /* Contenitore principale */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    /* Intestazione */
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    h1 {
+      color: #0066cc;
+      font-size: 24px;
+      margin: 0;
+      font-weight: 600;
+    }
+    
+    /* Gruppi di form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #555;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+    }
+    
+    /* Pulsanti */
+    button {
+      width: 100%;
+      padding: 14px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: background-color 0.2s;
+    }
+    
+    button.primary {
+      background-color: #0066cc;
+      color: white;
+    }
+    
+    button.primary:hover {
+      background-color: #0052a3;
+    }
+    
+    button.secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    button.secondary:hover {
+      background-color: #5a6268;
+    }
+    
+    button.success {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    button.success:hover {
+      background-color: #218838;
+    }
+    
+    /* Messaggi di stato */
+    .status-container {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 6px;
+      text-align: center;
+      display: none;
+    }
+    
+    .status-container h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    
+    .status-container p {
+      margin: 0;
+    }
+    
+    .available {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .not-available {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .loading {
+      background-color: #e2e3e5;
+      color: #383d41;
+      border: 1px solid #d6d8db;
+    }
+    
+    /* Griglia disponibilità */
+    .grid-container {
+      margin-top: 20px;
+      display: none;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .grid-header {
+      background-color: #0066cc;
+      color: white;
+      padding: 12px 15px;
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .grid-content {
+      max-height: 400px;
+      overflow-y: auto;
+      background-color: white;
+    }
+    
+    .grid-content table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .grid-content th {
+      background-color: #0066cc;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+    }
+    
+    .grid-content td {
+      padding: 12px 10px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .time-cell {
+      font-weight: 600;
+      background-color: #f2f2f2;
+    }
+    
+    .available-cell {
+      background-color: #d4edda;
+      color: #155724;
+      cursor: pointer;
+    }
+    
+    .available-cell:hover {
+      background-color: #c3e6cb;
+    }
+    
+    .booked-cell {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    /* Spinner di caricamento */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0,0,0,0.1);
+      border-radius: 50%;
+      border-top-color: #0066cc;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Prenotazione Campo Padel</h1>
+    </div>
+    
+    <!-- Form di prenotazione -->
+    <div class="form-group">
+      <label for="dateInput">Data</label>
+      <input type="text" id="dateInput" placeholder="Seleziona una data">
+    </div>
+    
+    <div class="form-group">
+      <label for="courtInput">Campo</label>
+      <select id="courtInput">
+        <option value="">Seleziona un campo</option>
+        <option value="Campo 1">Campo 1</option>
+        <option value="Campo 2">Campo 2</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="timeInput">Orario</label>
+      <select id="timeInput">
+        <option value="">Seleziona un orario</option>
+        <!-- Gli orari verranno caricati dinamicamente -->
+      </select>
+    </div>
+    
+    <!-- Messaggi di stato -->
+    <div id="statusContainer" class="status-container">
+      <h2 id="statusTitle">Verifica in corso...</h2>
+      <p id="statusMessage">Stiamo controllando la disponibilità...</p>
+    </div>
+    
+    <!-- Pulsanti di azione -->
+    <button id="checkBtn" class="primary" onclick="checkAvailability()">Verifica Disponibilità</button>
+    <button id="bookBtn" class="success" style="display: none;" onclick="bookSlot()">Continua con la prenotazione</button>
+    <button id="gridBtn" class="secondary" onclick="toggleGridView()">Visualizza Griglia</button>
+  </div>
+  
+  <!-- Contenitore per la griglia -->
+  <div id="gridContainer" class="grid-container">
+    <!-- Il contenuto della griglia verrà caricato dinamicamente -->
+  </div>
+  
+  <script>
+    // Configurazione del date picker
+    const datePicker = flatpickr("#dateInput", {
+      dateFormat: "d/m/Y",
+      minDate: "today",
+      locale: "it",
+      disableMobile: false, // Forza il datepicker anche su mobile
+      defaultDate: getTodayFormatted(),
+      onChange: function(selectedDates, dateStr) {
+        // Quando la data cambia, aggiorna la griglia se è visibile
+        if (document.getElementById('gridContainer').style.display === 'block') {
+          loadGridView();
+        }
+      }
+    });
+    
+    // Carica gli orari disponibili al caricamento della pagina
+    loadTimeSlots();
+    
+    // Impostazione dell'evento di click sulle celle disponibili nella griglia
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.classList.contains('available-cell')) {
+        const time = e.target.getAttribute('data-time');
+        const court = e.target.getAttribute('data-court');
+        
+        if (time && court) {
+          // Imposta i valori nel form
+          document.getElementById('timeInput').value = time;
+          document.getElementById('courtInput').value = court;
+          
+          // Scorri all'inizio e verifica la disponibilità
+          window.scrollTo({top: 0, behavior: 'smooth'});
+          checkAvailability();
+        }
+      }
+    });
+    
+    // Funzione per ottenere la data odierna formattata
+    function getTodayFormatted() {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, '0');
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const year = today.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+    
+    // Funzione per caricare gli orari nel dropdown
+    function loadTimeSlots() {
+      const timeSelect = document.getElementById('timeInput');
+      
+      // Chiamata al server per ottenere gli orari disponibili
+      google.script.run
+        .withSuccessHandler(function(result) {
+          // Svuota il dropdown
+          timeSelect.innerHTML = '<option value="">Seleziona un orario</option>';
+          
+          if (result.success && result.availableTimes) {
+            // Aggiungi gli orari al dropdown
+            result.availableTimes.forEach(slot => {
+              const option = document.createElement('option');
+              option.value = slot;
+              option.textContent = slot;
+              timeSelect.appendChild(option);
+            });
+          } else {
+            // Se non ci sono orari disponibili, aggiungiamo gli slot predefiniti
+            const defaultSlots = [
+              "09:00-10:30", "09:30-11:00", "10:00-11:30", "10:30-12:00",
+              "11:00-12:30", "11:30-13:00", "12:00-13:30", "12:30-14:00",
+              "13:00-14:30", "13:30-15:00", "14:00-15:30", "14:30-16:00",
+              "15:00-16:30", "15:30-17:00", "16:00-17:30", "16:30-18:00",
+              "17:00-18:30", "17:30-19:00", "18:00-19:30", "18:30-20:00",
+              "19:00-20:30", "19:30-21:00", "20:00-21:30"
+            ];
+            
+            defaultSlots.forEach(slot => {
+              const option = document.createElement('option');
+              option.value = slot;
+              option.textContent = slot;
+              timeSelect.appendChild(option);
+            });
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error("Errore nel caricamento degli orari:", error);
+          // Carica orari predefiniti in caso di errore
+          const defaultSlots = [
+            "09:00-10:30", "09:30-11:00", "10:00-11:30", "10:30-12:00",
+            "11:00-12:30", "11:30-13:00", "12:00-13:30", "12:30-14:00",
+            "13:00-14:30", "13:30-15:00", "14:00-15:30", "14:30-16:00",
+            "15:00-16:30", "15:30-17:00", "16:00-17:30", "16:30-18:00",
+            "17:00-18:30", "17:30-19:00", "18:00-19:30", "18:30-20:00",
+            "19:00-20:30", "19:30-21:00", "20:00-21:30"
+          ];
+          
+          defaultSlots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot;
+            option.textContent = slot;
+            timeSelect.appendChild(option);
+          });
+        })
+        .processClientRequest('getAvailableTimes', {
+          data: document.getElementById('dateInput').value,
+          campo: "Campo 1" // Carica orari iniziali per Campo 1
+        });
+    }
+    
+    // Funzione per mostrare messaggi di stato
+    function showStatus(title, message, type) {
+      const statusContainer = document.getElementById('statusContainer');
+      const statusTitle = document.getElementById('statusTitle');
+      const statusMessage = document.getElementById('statusMessage');
+      
+      statusTitle.textContent = title;
+      statusMessage.textContent = message;
+      statusContainer.className = 'status-container ' + type;
+      statusContainer.style.display = 'block';
+      
+      // Scorri alla visualizzazione del messaggio
+      statusContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // Funzione per verificare la disponibilità
+    function checkAvailability() {
+      const date = document.getElementById('dateInput').value;
+      const court = document.getElementById('courtInput').value;
+      const time = document.getElementById('timeInput').value;
+      
+      // Validazione input
+      if (!date || !court || !time) {
+        showStatus('Dati incompleti', 'Per favore, completa tutti i campi.', 'not-available');
+        return;
+      }
+      
+      // Mostra messaggio di caricamento
+      showStatus('Verifica in corso...', 'Stiamo controllando la disponibilità...', 'loading');
+      document.getElementById('statusTitle').innerHTML = '<div class="spinner"></div> Verifica in corso...';
+      
+      // Nascondi il pulsante di prenotazione
+      document.getElementById('bookBtn').style.display = 'none';
+      
+      // Chiamata al server per verificare la disponibilità
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            // Slot disponibile
+            showStatus('✅ Slot Disponibile!', 
+              `${date} - ${court} - ${time} è disponibile per la prenotazione.`,
+              'available');
+            
+            // Mostra il pulsante di prenotazione
+            document.getElementById('bookBtn').style.display = 'block';
+          } else {
+            // Slot non disponibile
+            showStatus('❌ Slot Non Disponibile', 
+              result.error || 'Questo slot non è disponibile. Prova un altro orario o campo.',
+              'not-available');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showStatus('⚠️ Errore', 'Si è verificato un errore durante la verifica. Riprova.', 'not-available');
+          console.error("Errore nella verifica:", error);
+        })
+        .processClientRequest('checkAvailability', {
+          data: date,
+          campo: court,
+          orario: time
+        });
+    }
+    
+    // Funzione per prenotare lo slot
+    // Sostituisci la funzione bookSlot con questa versione migliorata
+function bookSlot() {
+  const date = document.getElementById('dateInput').value;
+  const court = document.getElementById('courtInput').value;
+  const time = document.getElementById('timeInput').value;
+  
+  // Validazione input
+  if (!date || !court || !time) {
+    showStatus('Dati incompleti', 'Per favore, completa tutti i campi.', 'not-available');
+    return;
+  }
+  
+  // Mostra messaggio di caricamento
+  showStatus('Prenotazione in corso...', 'Stiamo completando la tua prenotazione...', 'loading');
+  document.getElementById('statusTitle').innerHTML = '<div class="spinner"></div> Prenotazione in corso...';
+  
+  // Disabilita il pulsante durante la prenotazione
+  const bookBtn = document.getElementById('bookBtn');
+  bookBtn.disabled = true;
+  
+  // Invia i dati a Adalo
+  try {
+    const bookingData = {
+      type: 'booking_confirmed',
+      data: {
+        date: date,
+        court: court,
+        timeSlot: time,
+        bookingId: new Date().getTime()
+      }
+    };
+    
+    window.parent.postMessage(bookingData, '*');
+    console.log("Dati inviati ad Adalo:", bookingData);
+  } catch (error) {
+    console.error("Errore nell'invio dei dati ad Adalo:", error);
+  }
+  
+  // Ora proseguiamo con la prenotazione reale
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        // Prenotazione riuscita
+        showStatus('✅ Prenotazione Confermata!', 
+          `La tua prenotazione è stata confermata. ID: ${result.bookingId}`,
+          'available');
+        
+        // Aggiorna il pulsante
+        bookBtn.textContent = 'Torna ad Adalo';
+        bookBtn.disabled = false;
+        bookBtn.onclick = redirectToAdalo;
+        
+        // IMPORTANTE: Aggiorna immediatamente la griglia
+        // anche se non è visibile, così sarà aggiornata quando l'utente la visualizzerà
+        loadGridView(true);
+      } else {
+        // Prenotazione fallita
+        showStatus('❌ Prenotazione Fallita', 
+          result.error || 'Non è stato possibile completare la prenotazione. Riprova.',
+          'not-available');
+        
+        bookBtn.disabled = false;
+      }
+    })
+    .withFailureHandler(function(error) {
+      showStatus('⚠️ Errore', 'Si è verificato un errore durante la prenotazione. Riprova.', 'not-available');
+      console.error("Errore nella prenotazione:", error);
+      bookBtn.disabled = false;
+    })
+    .processClientRequest('createBooking', {
+      data: date,
+      campo: court,
+      orario: time,
+      utente: 'Utente Adalo',
+      email: ''
+    });
+}
+
+// Modifica la funzione loadGridView per supportare il refresh forzato
+function loadGridView(forceRefresh = false) {
+  const date = document.getElementById('dateInput').value;
+  const gridContainer = document.getElementById('gridContainer');
+  
+  // Validazione
+  if (!date) {
+    gridContainer.innerHTML = '<div class="status-container not-available">Seleziona prima una data</div>';
+    return;
+  }
+  
+  // Se stiamo aggiornando forzatamente ma la griglia non è visibile, 
+  // non mostriamo il messaggio di caricamento ma memorizziamo il fatto che è necessario aggiornare
+  if (forceRefresh && gridContainer.style.display !== 'block') {
+    gridContainer.setAttribute('data-needs-refresh', 'true');
+    return;
+  }
+  
+  // Mostra messaggio di caricamento
+  gridContainer.innerHTML = '<div class="grid-header">Caricamento disponibilità...</div>';
+  
+  // Chiama il server per ottenere l'HTML della griglia - IMPORTANTE: aggiungiamo timestamp per evitare cache
+  google.script.run
+    .withSuccessHandler(function(html) {
+      // Visualizza la griglia
+      gridContainer.innerHTML = html;
+      gridContainer.removeAttribute('data-needs-refresh');
+      
+      // Aggiungi evento di click alle celle disponibili
+      const availableCells = gridContainer.querySelectorAll('.available-cell');
+      availableCells.forEach(cell => {
+        cell.addEventListener('click', function() {
+          document.getElementById('courtInput').value = this.getAttribute('data-court');
+          document.getElementById('timeInput').value = this.getAttribute('data-time');
+          
+          window.scrollTo({top: 0, behavior: 'smooth'});
+          checkAvailability();
+        });
+      });
+    })
+    .withFailureHandler(function(error) {
+      gridContainer.innerHTML = '<div class="status-container not-available">Errore nel caricamento della griglia: ' + error + '</div>';
+      console.error("Errore nel caricamento della griglia:", error);
+    })
+    .getGridHtml(date);
+}
+
+// Modifica la funzione toggleGridView per controllare se è necessario un refresh
+function toggleGridView() {
+  const gridContainer = document.getElementById('gridContainer');
+  const gridBtn = document.getElementById('gridBtn');
+  
+  if (gridContainer.style.display === 'block') {
+    // Nascondi la griglia
+    gridContainer.style.display = 'none';
+    gridBtn.textContent = 'Visualizza Griglia';
+  } else {
+    // Mostra la griglia
+    gridContainer.style.display = 'block';
+    gridBtn.textContent = 'Nascondi Griglia';
+    
+    // Carica i dati della griglia, verificando se è necessario un refresh
+    const needsRefresh = gridContainer.getAttribute('data-needs-refresh') === 'true';
+    loadGridView(needsRefresh);
+  }
+}
+    
+    // Funzione per reindirizzare ad Adalo
+    function redirectToAdalo() {
+      try {
+        // Invia un messaggio di chiusura ad Adalo
+        window.parent.postMessage({
+          type: 'close_webviewer',
+          action: 'navigate_back'
+        }, '*');
+        
+        // Attendi un attimo e poi prova a tornare indietro se il messaggio non funziona
+        setTimeout(function() {
+          try {
+            // Oppure prova semplicemente a tornare indietro nella storia del browser
+            window.parent.history.back();
+          } catch (e) {
+            console.error("Impossibile navigare indietro:", e);
+          }
+        }, 500);
+      } catch (error) {
+        console.error("Errore nel redirect ad Adalo:", error);
+        alert("Per favore, torna all'app principale per continuare.");
+      }
+    }
+    
+    // Funzione per mostrare/nascondere la griglia di disponibilità
+    function toggleGridView() {
+      const gridContainer = document.getElementById('gridContainer');
+      const gridBtn = document.getElementById('gridBtn');
+      
+      if (gridContainer.style.display === 'block') {
+        // Nascondi la griglia
+        gridContainer.style.display = 'none';
+        gridBtn.textContent = 'Visualizza Griglia';
+      } else {
+        // Mostra la griglia
+        gridContainer.style.display = 'block';
+        gridBtn.textContent = 'Nascondi Griglia';
+        
+        // Carica i dati della griglia
+        loadGridView();
+      }
+    }
+    
+    // Funzione per caricare la vista griglia
+    function loadGridView() {
+      const date = document.getElementById('dateInput').value;
+      const gridContainer = document.getElementById('gridContainer');
+      
+      // Validazione
+      if (!date) {
+        gridContainer.innerHTML = '<div class="status-container not-available">Seleziona prima una data</div>';
+        return;
+      }
+      
+      // Mostra messaggio di caricamento
+      gridContainer.innerHTML = '<div class="grid-header">Caricamento disponibilità...</div>';
+      
+      // Chiama il server per ottenere l'HTML della griglia
+      google.script.run
+        .withSuccessHandler(function(html) {
+          // Visualizza la griglia
+          gridContainer.innerHTML = html;
+          
+          // Aggiungi evento di click alle celle disponibili
+          const availableCells = gridContainer.querySelectorAll('.available-cell');
+          availableCells.forEach(cell => {
+            cell.addEventListener('click', function() {
+              // Imposta i valori nel form quando si clicca su una cella disponibile
+              document.getElementById('courtInput').value = this.getAttribute('data-court');
+              document.getElementById('timeInput').value = this.getAttribute('data-time');
+              
+              // Scorri all'inizio e verifica la disponibilità
+              window.scrollTo({top: 0, behavior: 'smooth'});
+              checkAvailability();
+            });
+          });
+        })
+        .withFailureHandler(function(error) {
+          gridContainer.innerHTML = '<div class="status-container not-available">Errore nel caricamento della griglia: ' + error + '</div>';
+          console.error("Errore nel caricamento della griglia:", error);
+        })
+        .getGridHtml(date);
+    }
+  </script>
+</body>
+</html>
